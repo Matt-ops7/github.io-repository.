@@ -1,0 +1,231 @@
+/* style.css - Nueva interfaz de Matt.ia */
+body {
+    background-color: #f0f2f5;
+    color: #333;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding-top: 5rem;    /* Espacio para el header fijo */
+    padding-bottom: 5.5rem; /* Aumentado para el input-area fijo. Prueba con 6rem si aún se corta. */
+    padding-left: 0;
+    padding-right: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    background: #36393F;
+    padding: 1.2rem;
+    text-align: center;
+    font-size: 1.8rem;
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 10; /* Asegura que esté por encima de otros elementos */
+
+    /* --- CAMBIOS CLAVE PARA ENCABEZADO FIJO --- */
+    position: fixed; /* Hace que el elemento se mantenga fijo en el viewport */
+    top: 0;          /* Lo pega a la parte superior de la ventana */
+    left: 0;         /* Lo pega al lado izquierdo de la ventana */
+    width: 100%;     /* Hace que ocupe todo el ancho de la ventana */
+}
+
+.chat-container {
+    padding: 1rem;
+    flex-grow: 1; /* Permite que el chat container ocupe el espacio restante */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem; /* Un poco más de espacio entre burbujas */
+    background-color: #fff; /* Fondo blanco para el área de chat */
+    margin: 1rem; /* Margen para que no toque los bordes del body */
+    border-radius: 12px; /* Bordes redondeados para el área de chat */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Sombra suave para el contenedor del chat */
+    scroll-behavior: smooth;
+}
+
+/* Base para todos los mensajes */
+.message {
+    padding: 0.85rem 1.2rem; /* Ajuste el padding */
+    border-radius: 25px; /* Bordes más redondeados */
+    max-width: 75%; /* Puede ser un poco más ancha para las respuestas */
+    white-space: pre-wrap;
+    line-height: 1.4; /* Mejora la legibilidad */
+    word-wrap: break-word; /* Para evitar que las palabras largas desborden */
+    box-sizing: border-box; /* ¡CLAVE! Asegura que padding y border estén incluidos en max-width */
+}
+
+/* Estilo para los mensajes del usuario (burbuja blanca) */
+.from-user {
+    align-self: flex-end; /* A la derecha */
+    background: #fff; /* Fondo blanco */
+    color: #333; /* Texto oscuro */
+    border: 1px solid #ccc; /* Borde delgado para la burbuja blanca */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Sombra suave */
+}
+
+/* Estilo para los mensajes del bot (burbuja azul) */
+.from-bot {
+    align-self: flex-start; /* A la izquierda */
+    background: #007bff; /* Un azul más vibrante, común en interfaces modernas */
+    color: #fff; /* Texto blanco */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Sombra suave */
+    border-top-left-radius: 5px; /* Esquina superior izquierda un poco menos redondeada */
+}
+
+/* --- CLASE ESPECÍFICA para la burbuja gris/negra superior del bot (mensaje de bienvenida) --- */
+.initial-welcome {
+    align-self: center; /* A la izquierda */
+    background: #40444B; /* Un gris oscuro, similar al de la imagen */
+    color: #fff; /* Texto blanco */
+    text-align: center; /* Alineado a la izquierda como se ve en la imagen */
+    font-size: 1em; /* Tamaño estándar, no más pequeño */
+    max-width: 85%; /* Más ancha como en la imagen */
+    border-radius: 25px; /* Bordes redondeados */
+    padding: 1.2rem 1.5rem; /* Más padding para que se vea como una barra */
+    margin-bottom: 1rem; /* Espacio extra debajo */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sombra más pronunciada */
+    border-top-left-radius: 5px; /* Esquina superior izquierda menos redondeada para simular el corte */
+}
+
+
+.input-area {
+    display: flex;
+    padding: 1rem;
+    background-color: #f0f2f5; /* Mismo color de fondo que el body */
+    align-items: center; /* Centra verticalmente los elementos */
+    border-top: 1px solid #e0e0e0; /* Un borde superior sutil */
+
+    /* --- CAMBIOS CLAVE PARA BARRA DE ESCRITURA FIJA --- */
+    position: fixed; /* Hace que el elemento se mantenga fijo en el viewport */
+    bottom: 0;       /* Lo pega a la parte inferior de la ventana */
+    left: 0;         /* Lo pega al lado izquierdo de la ventana */
+    width: 100%;     /* Hace que ocupe todo el ancho de la ventana */
+    z-index: 10;     /* Asegura que esté por encima del chat-container */
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1); /* Sombra sutil hacia arriba */
+}
+
+.input-area input {
+    flex: 1;
+    padding: 0.9rem 1.2rem; /* Más padding */
+    border-radius: 28px; /* Más redondeado */
+    border: 1px solid #e0e0e0; /* Borde sutil */
+    font-size: 1.05rem; /* Un poco más grande */
+    outline: none;
+    background-color: #fff; /* Fondo blanco */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); /* Sombra interna para un efecto más profundo */
+    color: #333; /* Color del texto dentro del input */
+}
+
+/* Estilo para el placeholder del input */
+.input-area input::placeholder {
+    color: #999; /* Color gris suave para el placeholder */
+}
+
+
+.input-area button {
+    background: #007bff; /* El mismo azul vibrante */
+    color: white;
+    border: none;
+    width: 50px; /* Ancho fijo para el botón circular */
+    height: 50px; /* Alto fijo para el botón circular */
+    border-radius: 50%; /* Completamente circular */
+    cursor: pointer;
+    font-size: 1.5rem; /* Icono de flecha más grande */
+    display: flex; /* Para centrar el icono */
+    justify-content: center;
+    align-items: center;
+    margin-left: 0.8rem; /* Más espacio a la izquierda */
+    transition: background 0.3s ease; /* Transición suave al pasar el ratón */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sombra para el botón */
+}
+
+.input-area button:hover {
+    background: #0056b3; /* Azul más oscuro al pasar el ratón */
+}
+
+/* Estilos para el botón de alternar tema */
+.theme-toggle-button {
+    background: none;
+    border: none;
+    color: #fff; /* Color del icono/texto en modo claro */
+    font-size: 1.5rem;
+    cursor: pointer;
+    position: absolute; /* Para colocarlo en la esquina del header */
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: color 0.3s ease;
+}
+
+.theme-toggle-button:hover {
+    color: #f0f0f0;
+}
+
+/* --- Estilos para el Modo Oscuro --- */
+body.dark-mode {
+    background-color: #1a1a1d; /* Fondo muy oscuro para el body */
+    color: #e0e0e0; /* Texto claro general */
+}
+
+body.dark-mode header {
+    background: #282b30; /* Header más oscuro */
+    color: #fff;
+}
+
+body.dark-mode .theme-toggle-button {
+    color: #e0e0e0; /* Color del icono/texto en modo oscuro */
+}
+
+body.dark-mode .theme-toggle-button:hover {
+    color: #f5f5f5;
+}
+
+body.dark-mode .chat-container {
+    background-color: #2f3136; /* Fondo del chat oscuro */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5); /* Sombra más pronunciada en oscuro */
+}
+
+body.dark-mode .message.from-user {
+    background: #40444B; /* Burbuja de usuario oscura */
+    color: #e0e0e0;
+    border: 1px solid #50545a; /* Borde oscuro */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .message.from-bot {
+    background: #6a5acd; /* Un color morado oscuro, para que contraste con el fondo oscuro y no sea el mismo azul que el del usuario */
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .initial-welcome {
+    background-color: #36393F; /* La burbuja de bienvenida inicial, también oscura */
+    color: #b0b0b0; /* Un gris claro para el texto */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+}
+
+body.dark-mode .input-area {
+    background-color: #282b30; /* Área de input oscura */
+    border-top: 1px solid #3c3f44;
+}
+
+body.dark-mode .input-area input {
+    background-color: #36393F; /* Fondo del input oscuro */
+    color: #e0e0e0;
+    border: 1px solid #40444B;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+body.dark-mode .input-area input::placeholder {
+    color: #909090; /* Placeholder más claro en modo oscuro */
+}
+
+body.dark-mode .input-area button {
+    background: #6a5acd; /* Botón de enviar morado oscuro */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .input-area button:hover {
+    background: #5a4b9c; /* Morado más oscuro al pasar el ratón */
+}

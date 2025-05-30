@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Matt.ia - Asistente Inteligente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="shortcut icon" href="/www/m.svg" type="image/matt.ia-icon">
+</head>
+<body>
+
+<header>
+  Matt.ia
+  <button id="theme-toggle" class="theme-toggle-button">
+    <i class="fas fa-moon"></i>
+  </button>
+</header>
+
+<div class="chat-container" id="chat-container">
+  <div class="message from-bot initial-welcome">
+    ¡Hola! Soy Matt.ia, tu asistente inteligente, desarrollado por un estudiante de Análisis de Sistemas. Estoy aquí para lo que necesites, ¡pregúntame lo que quieras! 🤖
+  </div>
+</div>
+
+<div class="input-area">
+  <input type="text" id="user-input" placeholder="Escribe aquí..." autocomplete="off">
+  <button id="send-button">
+    <i class="fas fa-paper-plane"></i>
+  </button>
+</div>
+
+<script>
+  // ATENCIÓN: Por seguridad, en un entorno de producción, esta clave API DEBE MANEJARSE EN UN BACKEND.
+  // Está aquí directamente para fines de demostración y simplicidad de este ejemplo en el frontend.
+  const OPENROUTER_API_KEY = "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";
+  const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+  const MODEL_NAME = "meta-llama/llama-3-8b-instruct"; // Modelo más rápido
+
+  const userInput = document.getElementById("user-input");
+  const chatContainer = document.getElementById("chat-container");
+  const sendButton = document.getElementById("send-button");
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  const body = document.body;
+  const themeIcon = themeToggleBtn.querySelector('i');
+
+  // --- Memoria Conversacional ---
+  // Almacenará el historial de la conversación para enviarlo a la IA
+  // Incluimos el prompt del sistema desde el principio
+  const conversationHistory = [
+    {
+      role: "system",
+      content: "Eres Matt.ia, un asistente virtual creado por un estudiante de Análisis de Sistemas. Tu misión es ser útil, amigable y profesional. Usa un lenguaje natural y cotidiano, pero siempre manteniendo un tono formal. Responde a todas las preguntas con claridad y empatía."
+    }
+  ];
+
+  // Función para añadir un mensaje al chat UI
+  function addMessageToChat(message, senderClass) {
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message ${senderClass}`;
+    messageDiv.innerHTML = message; // Usamos innerHTML para permitir formato básico si la IA lo envía
+    chatContainer.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight; // Desplazar al último mensaje
+  }
+
+  // Habilitar/Deshabilitar input y botón de enviar
+  function toggleInputState(enabled) {
+      userInput.disabled = !enabled;
+      sendButton.disabled = !enabled;
+      if (enabled) {
+          userInput.focus();
+      }
+  }
+
+  // Función principal para enviar mensajes
+  async function sendMessage() {
+    const userMessage = userInput.value.trim();
+    if (!userMessage) return;
+
+    // Deshabilita el input y botón mientras se espera la respuesta
+    toggleInputState(false);
+    userInput.value = ""; // Limpiar el input
+
+    // Añadir mensaje del usuario al historial y UI
+    conversationHistory.push({ role: "user", content: userMessage });
+    addMessageToChat(userMessage, "from-user");
+
+    // Crear burbuja de "Escribiendo..." para el bot
+    const botTypingBubble = document.createElement("div");
+    botTypingBubble.className = "message from-bot";
+    botTypingBubble.textContent = "Matt.ia está escribiendo...";
+    chatContainer.appendChild(botTypingBubble);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    try {
+      const response = await fetch(OPENROUTER_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+          "HTTP-Referer": window.location.href, // O una URL específica si lo despliegas
+          "X-Title": "Matt.ia Chatbot"
+        },
+        body: JSON.stringify({
+          model: MODEL_NAME,
+          messages: conversationHistory, // Enviamos todo el historial
+          stream: true, // Habilitar streaming
+          // max_tokens: 500 // Opcional: limitar longitud de respuesta para velocidad
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error de la API:", response.status, response.statusText, errorText);
+        throw new Error(`Error de la IA: ${response.status} - ${response.statusText}. Por favor, inténtalo de nuevo.`);
+      }
+
+      // --- Manejo de Streaming de Respuesta ---
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let botFullResponse = "";
+
+      // Reemplazar la burbuja de "Escribiendo..." con una vacía para el streaming
+      botTypingBubble.textContent = "";
+
+     while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+        for (const line of lines) {
+            if (line.startsWith('data:')) {
+                const jsonStr = line.substring(5);
+                if (jsonStr === '[DONE]') {
+                    break;
+                }
+                try {
+                    const data = JSON.parse(jsonStr);
+                    const deltaContent = data.choices?.[0]?.delta?.content || "";
+                    botFullResponse += deltaContent;
+                    botTypingBubble.innerHTML = botFullResponse; // Actualizar el contenido de la burbuja
+                    
+                    // Asegurarse de que el scroll siempre vaya al final
+                    // Una pequeña demora puede ayudar si hay problemas de renderizado
+                    setTimeout(() => {
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    }, 0); // La demora de 0 ms pone la tarea al final de la cola de eventos
+
+                } catch (e) {
+                    console.error("Error al parsear JSON del stream:", e, jsonStr);
+                }
+            }
+        }
+      }
+      
+      // Asegurarse de que el último chunk se decodifique completamente
+      botFullResponse += decoder.decode();
+
+      // Eliminar la burbuja de "Escribiendo..." si aún existe y añadir la respuesta final
+      if (botTypingBubble.parentNode) {
+        // La burbuja de "Escribiendo..." ya se transformó en la respuesta, solo actualizamos el historial
+        conversationHistory.push({ role: "assistant", content: botFullResponse });
+      }
+
+    } catch (error) {
+      console.error("Error al obtener respuesta de la IA:", error);
+      botTypingBubble.textContent = "Ups! Ocurrió un error al conectar con Matt.ia. Inténtalo de nuevo más tarde.";
+      // Si hay un error, el último mensaje sigue siendo el error, no lo agregamos al historial para no sesgar
+    } finally {
+      toggleInputState(true); // Habilita el input y botón
+      chatContainer.scrollTop = chatContainer.scrollHeight; // Asegurar el desplazamiento final
+    }
+  }
+
+  // --- Event Listeners ---
+  sendButton.addEventListener("click", sendMessage);
+
+  userInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { // Permite Shift+Enter para nueva línea
+      e.preventDefault(); // Previene el salto de línea por defecto
+      sendMessage();
+    }
+  });
+
+  // --- Lógica del Modo Oscuro (Re-ubicada aquí dentro del script) ---
+  function applyTheme(isDarkMode) {
+    if (isDarkMode) {
+      body.classList.add('dark-mode');
+      themeIcon.classList.remove('fa-moon');
+      themeIcon.classList.add('fa-sun');
+    } else {
+      body.classList.remove('dark-mode');
+      themeIcon.classList.remove('fa-sun');
+      themeIcon.classList.add('fa-moon');
+    }
+  }
+
+  // Cargar preferencia de tema al inicio
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    applyTheme(true);
+  } else {
+    // Si no hay preferencia o es 'light', asegurarse de que esté en modo claro
+    applyTheme(false); 
+  }
+
+  themeToggleBtn.addEventListener('click', () => {
+    const isCurrentlyDarkMode = body.classList.contains('dark-mode');
+    applyTheme(!isCurrentlyDarkMode);
+    localStorage.setItem('theme', !isCurrentlyDarkMode ? 'dark' : 'light');
+  });
+
+</script>
+</body>
+</html>
