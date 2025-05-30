@@ -22,7 +22,7 @@ exports.handler = async function(event, context) {
             headers: {
                 "Content-Type": "application/json",
                 // Aquí se usa la clave API segura desde el entorno
-                "Authorization": `Bearer ${AIzaSyC0Nv3zibJc6mASIYunAks_ihCQgdH7I8Y}`,
+                "Authorization": `Bearer ${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}`,
                 // Opcional: Puedes enviar headers para OpenRouter desde aquí
                 "HTTP-Referer": "https://matt-ia.netlify.app", // O tu dominio personalizado
                 "X-Title": "Matt.ia Chatbot (via Netlify Function)"
